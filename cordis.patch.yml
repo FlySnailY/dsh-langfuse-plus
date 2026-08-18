@@ -1,0 +1,31 @@
+# dsh-langfuse-plus bundle patch
+#
+# 一行插入 dsh-langfuse-plus host 插件。安装方式：
+#   dsh plugin --profile web add ./dsh-langfuse-plus   （或 npm 发布后 add dsh-langfuse-plus）
+#
+# 配置来源优先级：环境变量 > 本文件默认值。
+#   DSH_LANGFUSE_BASE_URL       Langfuse 实例地址（默认本机自托管 :3000）
+#   DSH_LANGFUSE_PUBLIC_KEY     Langfuse 项目公钥
+#   DSH_LANGFUSE_SECRET_KEY     Langfuse 项目密钥
+#   DSH_LANGFUSE_ENVIRONMENT    trace 环境标签（development / production）
+#   DSH_LANGFUSE_PROMPT_ENABLED 双向桥开关（0 关闭）
+#   DSH_LANGFUSE_PROMPT_NAME    Langfuse prompt 名（默认 dsh-system-prompt）
+#   DSH_LANGFUSE_PROMPT_LABEL   prompt 版本标签（默认 production）
+
+# DSH base profile 在 telemetry seam 上挂了官方 OTLP-logs 后端（session-telemetry-otel），
+# 而 seam 每个 context 只接受一个后端（重复注册会 throw）。先禁用官方后端，再挂本插件。
+- id: session-telemetry-otel
+  disabled: true
+
+- insert:
+    - id: session-telemetry-langfuse
+      name: dsh-langfuse-plus
+      config:
+        enabled: !!js (process.env.DSH_LANGFUSE_DISABLED ?? '') !== '1'
+        baseUrl: !!js process.env.DSH_LANGFUSE_BASE_URL ?? 'http://localhost:3000'
+        publicKey: !!js process.env.DSH_LANGFUSE_PUBLIC_KEY ?? ''
+        secretKey: !!js process.env.DSH_LANGFUSE_SECRET_KEY ?? ''
+        environment: !!js process.env.DSH_LANGFUSE_ENVIRONMENT ?? 'development'
+        promptEnabled: !!js process.env.DSH_LANGFUSE_PROMPT_ENABLED !== '0'
+        promptName: !!js process.env.DSH_LANGFUSE_PROMPT_NAME ?? 'dsh-system-prompt'
+        promptLabel: !!js process.env.DSH_LANGFUSE_PROMPT_LABEL ?? 'production'

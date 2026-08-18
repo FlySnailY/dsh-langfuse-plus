@@ -1,0 +1,14 @@
+# 运行时配置：含真实 Langfuse 凭据（lf_pk_/lf_sk_），严禁提交仓库。
+# 从 .env.example 复制为 .env 后填入自己的凭据。
+.env
+
+# 依赖
+node_modules/
+
+# 测试/构建临时产物
+.tmp-test/
+_tmp_*
+
+# 系统/编辑器
+.DS_Store
+*.log

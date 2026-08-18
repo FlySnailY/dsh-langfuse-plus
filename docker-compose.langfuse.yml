@@ -1,0 +1,145 @@
+# dsh-langfuse-plus 内置的 Langfuse 自托管编排（六件套，参考官方 docker-compose 裁剪）
+# 必填：ENCRYPTION_KEY（openssl rand -hex 32，未设置时 compose 启动会直接报错）。
+# 可选：LANGFUSE_INIT_* 用于 headless 首次自动建组织/项目/管理员；留空则跳过
+#   headless 初始化，可在 Langfuse UI（首次访问时）手动注册。
+# 其余 # CHANGEME 项建议一并修改。官方完整版：
+#   https://github.com/langfuse/langfuse/blob/main/docker-compose.yml
+
+services:
+  langfuse-web:
+    image: docker.io/langfuse/langfuse:4
+    restart: always
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    environment:
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-mysecret} # CHANGEME
+      SALT: ${SALT:-mysalt} # CHANGEME
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required, run: openssl rand -hex 32} # CHANGEME: openssl rand -hex 32
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/postgres
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-password}
+      REDIS_URL: redis://:${REDIS_AUTH:-password}@redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_REGION: us-east-1
+      S3_BUCKET_NAME: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse-media
+      LANGFUSE_S3_BATCH_EXPORT_BUCKET: langfuse-export
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-} # CHANGEME
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-} # CHANGEME
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-} # CHANGEME
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-} # CHANGEME
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-} # CHANGEME
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-} # CHANGEME
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-} # CHANGEME
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-} # CHANGEME
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-} # CHANGEME
+
+  langfuse-worker:
+    image: docker.io/langfuse/langfuse-worker:4
+    restart: always
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-mysecret}
+      SALT: ${SALT:-mysalt}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required, run: openssl rand -hex 32}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/postgres
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-password}
+      REDIS_URL: redis://:${REDIS_AUTH:-password}@redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_REGION: us-east-1
+      S3_BUCKET_NAME: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse-media
+      LANGFUSE_S3_BATCH_EXPORT_BUCKET: langfuse-export
+
+  postgres:
+    image: docker.io/postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password} # CHANGEME
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:25.12
+    restart: always
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-password} # CHANGEME
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ['CMD-SHELL', 'clickhouse-client --user ${CLICKHOUSE_USER:-clickhouse} --password ${CLICKHOUSE_PASSWORD:-password} --query "SELECT 1"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: docker.io/redis:7
+    restart: always
+    command: redis-server --requirepass ${REDIS_AUTH:-password} # CHANGEME
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a ${REDIS_AUTH:-password} ping | grep PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: cgr.dev/chainguard/minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin} # CHANGEME
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    ports:
+      - '9090:9000'
+      - '9091:9001'
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  clickhouse-data:
+  redis-data:
+  minio-data:

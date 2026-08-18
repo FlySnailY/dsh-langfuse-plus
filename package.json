@@ -1,0 +1,92 @@
+{
+  "name": "dsh-langfuse-plus",
+  "version": "0.1.0",
+  "description": "Full-stack Langfuse observability for DeepSeek Harness: one OpenTelemetry trace tree per turn, prompt bridge, eval datasets, and a sidebar entry — implemented on the official telemetry seam.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./mapping": {
+      "types": "./src/mapping.ts",
+      "default": "./src/mapping.ts"
+    },
+    "./transport": {
+      "types": "./src/transport.ts",
+      "default": "./src/transport.ts"
+    },
+    "./client": {
+      "types": "./client/index.tsx",
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "client",
+    "lib/client.js",
+    "scripts",
+    "cordis.patch.yml",
+    ".env.example",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlySnailY/dsh-langfuse-plus.git"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "langfuse",
+    "observability",
+    "llm-tracing",
+    "opentelemetry",
+    "otel",
+    "cordis"
+  ],
+  "scripts": {
+    "build:client": "node scripts/build-client.mjs",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/test.mjs && pnpm typecheck && node scripts/build-client.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-session-telemetry": "0.1.0-rc.7",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "@langfuse/otel": "^5.10.0",
+    "@langfuse/tracing": "^5.10.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/sdk-trace-base": "^2.10.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.1",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.31",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.9.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "platform": "web"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# pnpm 11 的构建脚本白名单（pnpm 11 起配置移到本文件，键名 allowBuilds）。
+# esbuild 需要 postinstall 下载平台二进制；其余依赖保持默认忽略构建脚本。
+allowBuilds:
+  esbuild: true

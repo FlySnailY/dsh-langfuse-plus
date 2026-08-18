@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 项目用 pnpm（pnpm-lock.yaml），与本地保持一致（不要用 npm，解析结果不同且会生成 package-lock.json）
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile：严格按 pnpm-lock.yaml 安装（esbuild 的 build script 由
+      # pnpm-workspace.yaml 的 allowBuilds 放行）
+      - run: pnpm install --frozen-lockfile
+
+      # mapping 纯函数快照测试
+      - run: pnpm test
+
+      # 类型检查（TS 类型错误由 CI 拦截）
+      - run: pnpm typecheck
+
+      # 构建 client 半，并校验 lib/client.js 与源码一致（防「改了 client 源码忘了重建」）
+      - run: pnpm build:client
+      - name: verify lib/client.js is in sync
+        run: |
+          if ! git diff --exit-code -- lib/client.js; then
+            echo "::error::lib/client.js is stale — run 'pnpm build:client' and commit the result"
+            exit 1
+          fi

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 (2026-08-20)
+
+- 测试：mapping 边界用例补全（thinking 类型块、usage 缺省/空）
+- CI：校验 package.json 版本与 CHANGELOG 顶部条目同步（防发布漏更新）
+- 文档：新增 CONTRIBUTING.md（开发 / 提交 / 发布规范）
+- 文档：新增 issue 与 PR 模板
+- 元数据：npm keywords 增强搜索可发现性
+- 工具：测试运行器支持按文件名过滤（`pnpm test -- <关键字>`）
+
 ## 0.1.1 (2026-08-20)
 
 - seam 依赖升级至 `0.1.0-rc.8`（与 DSH rc.8 宿主对齐，接口零差异，tarball 逐文件 diff 确认）

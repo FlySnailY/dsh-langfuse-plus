@@ -38,3 +38,6 @@ jobs:
             echo "::error::lib/client.js is stale — run 'pnpm build:client' and commit the result"
             exit 1
           fi
+
+      # 校验 package.json version 与 CHANGELOG 最新条目同步（发布必改两者，防漏）
+      - run: pnpm exec node scripts/verify-changelog-version.mjs

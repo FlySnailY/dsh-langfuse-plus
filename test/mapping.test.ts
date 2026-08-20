@@ -347,3 +347,70 @@ test('reasoning 拆分：assistant content 含 reasoning 块时 output 保持纯
   assert.equal(gen.output, '最终回答', 'output 只含 text 正文，不含 reasoning')
   assert.equal(gen.metadata.reasoning, '第一步思考…\n补充推理…', 'reasoning 拼接进 metadata')
 })
+
+test('reasoning 拆分：thinking 类型块同样进 reasoning，且与 reasoning 块按序拼接', () => {
+  const records: MappingRecord[] = [
+    rec('turn/start', { turn: 1 }, 1000),
+    rec('user/message', { message: { role: 'user', content: [{ type: 'text', text: 'hi' }] }, source: { kind: 'user' } }, 1100),
+    rec('assistant/message', {
+      turn: 1,
+      step: 1,
+      message: {
+        role: 'assistant',
+        content: [
+          { type: 'thinking', text: '思考A' },
+          { type: 'text', text: '回答' },
+          { type: 'reasoning', text: '推理B' },
+        ],
+        source: { kind: 'model', model: 'm' },
+      },
+    }, 1200),
+  ]
+
+  const instructions = foldAll(records)
+  const gen = instructions.find((i) => i.kind === 'generation:start') as {
+    output: unknown
+    metadata: { reasoning?: string }
+  }
+  assert.ok(gen, '产生 generation:start')
+  assert.equal(gen.output, '回答', 'output 只含 text 正文')
+  assert.equal(gen.metadata.reasoning, '思考A\n推理B', 'thinking 与 reasoning 按序拼接进 metadata')
+})
+
+test('usage 边界：缺 usage 时 generation:start 无 usageDetails', () => {
+  const records: MappingRecord[] = [
+    rec('turn/start', { turn: 1 }, 1000),
+    rec('user/message', { message: { role: 'user', content: [{ type: 'text', text: 'hi' }] }, source: { kind: 'user' } }, 1100),
+    rec('assistant/message', {
+      turn: 1,
+      step: 1,
+      message: { role: 'assistant', content: [{ type: 'text', text: '回答' }], source: { kind: 'model', model: 'm' } },
+      // 无 usage 字段
+    }, 1200),
+  ]
+
+  const instructions = foldAll(records)
+  const gen = instructions.find((i) => i.kind === 'generation:start') as { usageDetails?: unknown }
+  assert.ok(gen, '产生 generation:start')
+  assert.equal(gen.usageDetails, undefined, '缺 usage 时不产出 usageDetails')
+})
+
+test('usage 边界：空 usage 对象产出全零 usageDetails（无 output_reasoning）', () => {
+  const records: MappingRecord[] = [
+    rec('turn/start', { turn: 1 }, 1000),
+    rec('user/message', { message: { role: 'user', content: [{ type: 'text', text: 'hi' }] }, source: { kind: 'user' } }, 1100),
+    rec('assistant/message', {
+      turn: 1,
+      step: 1,
+      message: { role: 'assistant', content: [{ type: 'text', text: '回答' }], source: { kind: 'model', model: 'm' } },
+      usage: {},
+    }, 1200),
+  ]
+
+  const instructions = foldAll(records)
+  const gen = instructions.find((i) => i.kind === 'generation:start') as {
+    usageDetails?: { input: number; output: number; total: number; output_reasoning?: number }
+  }
+  assert.ok(gen, '产生 generation:start')
+  assert.deepEqual(gen.usageDetails, { input: 0, output: 0, total: 0 }, '空 usage → 全零 usageDetails')
+})

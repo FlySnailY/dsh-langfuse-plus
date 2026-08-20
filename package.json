@@ -42,16 +42,14 @@
     "url": "git+https://github.com/FlySnailY/dsh-langfuse-plus.git"
   },
   "keywords": [
-    "deepseek",
-    "deepseek-harness",
     "dsh",
-    "dsh-plugin",
+    "deepseek-harness",
     "langfuse",
     "observability",
-    "llm-tracing",
+    "llm",
+    "telemetry",
     "opentelemetry",
-    "otel",
-    "cordis"
+    "plugin"
   ],
   "scripts": {
     "build:client": "node scripts/build-client.mjs",

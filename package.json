@@ -60,7 +60,7 @@
     "check": "node scripts/test.mjs && pnpm typecheck && node scripts/build-client.mjs"
   },
   "dependencies": {
-    "@deepseek-ai/dsh-session-telemetry": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-session-telemetry": "0.1.0-rc.8",
     "@deepseek-ai/schemastery": "^3.18.1",
     "@langfuse/otel": "^5.10.0",
     "@langfuse/tracing": "^5.10.0",

@@ -2,3 +2,5 @@
 # esbuild 需要 postinstall 下载平台二进制；其余依赖保持默认忽略构建脚本。
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@deepseek-ai/dsh-session-telemetry@0.1.0-rc.8'

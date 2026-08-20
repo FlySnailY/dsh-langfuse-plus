@@ -23,7 +23,7 @@ dsh plugin --profile web add ./dsh-langfuse-plus
 
 配置项（实例地址 / 环境标签 / Prompt 同步等）见 [.env.example](.env.example)，均可用环境变量覆盖。自托管 Langfuse 编排见 [docker-compose.langfuse.yml](docker-compose.langfuse.yml)。
 
-需 DSH ≥ `0.1.0-rc.6`（rc.7 已验证兼容）与 Langfuse ≥ v4。
+需 DSH ≥ `0.1.0-rc.6`（rc.8 已验证兼容）与 Langfuse ≥ v4。
 
 ## 限制
 

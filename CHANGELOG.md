@@ -11,3 +11,8 @@ Initial release:
 - DSH 侧栏 Langfuse 入口按钮（构建期注入跳转地址）
 - 自带自托管编排 `docker-compose.langfuse.yml`
 - 需 DSH ≥ `0.1.0-rc.6`，Langfuse ≥ v4
+
+## 兼容性验证
+
+- **DSH `0.1.0-rc.8`**：2026-08-20 实测验证（本地 DSH 升级 rc.7→rc.8 后，插件 23/23 测试、typecheck、启动加载 `connectivity OK`、页面 200 全通过）。插件 seam 依赖同步锁定 `rc.8`（与 rc.7 接口零差异，tarball 逐文件 diff）。
+- **DSH `0.1.0-rc.7`**：2026-08-18 实测验证（升级 rc.5→rc.7 后全通过）。

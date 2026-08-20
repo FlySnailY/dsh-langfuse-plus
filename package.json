@@ -1,6 +1,6 @@
 {
   "name": "dsh-langfuse-plus",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Full-stack Langfuse observability for DeepSeek Harness: one OpenTelemetry trace tree per turn, prompt bridge, eval datasets, and a sidebar entry — implemented on the official telemetry seam.",
   "type": "module",
   "main": "src/index.ts",
